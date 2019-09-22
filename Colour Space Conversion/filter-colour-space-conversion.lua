@@ -15,12 +15,12 @@ TEXT_COL_SPACE_6 = 'XRGB Mini RGB Output Fix'
 
 
 source_def = {}
-source_def.id = 'filter-colour-space-correction'
+source_def.id = 'filter-colour-space-conversion'
 source_def.type = obs.OBS_SOURCE_TYPE_FILTER
 source_def.output_flags = bit.bor(obs.OBS_SOURCE_VIDEO)
 
 source_def.get_name = function()
-    return "Colour Space Correction"
+    return "Colour Space Conversion"
 end
 
 function script_description()
@@ -30,7 +30,7 @@ end
 
 
 function reload_filter(filter)
-    local effect_path = script_path() .. 'filter-colour-space-correction/colour-space-correction.effect'
+    local effect_path = script_path() .. 'filter-colour-space-conversion/colour-space-conversion.effect'
     obs.obs_enter_graphics()
 
     if filter.effect ~= nil then
