@@ -1,3 +1,5 @@
+//By Jademalo, using code from Xaymar
+
 // Basic Input Parameters
 uniform float4x4 ViewProj; // View Projection Matrix
 uniform texture2d image; // Input Image
@@ -52,7 +54,7 @@ float4 YUVtoRGB(float4 yuva, float3x3 yuvi) {
 }
 
 
-float4 YUV601To709(VertDataOut v_in) : TARGET {
+float4 PS_YUVSpaceConvert(VertDataOut v_in) : TARGET {
 //	const float3x3 mYUV709 = {
 //		0.2126, 0.7152, 0.0722,
 //		-0.2126, -0.7152, 0.9278,
@@ -82,14 +84,24 @@ float4 YUV601To709(VertDataOut v_in) : TARGET {
 	float4 YUV601;
 	float4 YUV709;
 
-	if(col_space == 0) {
+	if(col_space == 1) {
 		YUV601 = RGBtoYUV(image.Sample(primarySampler, v_in.uv), mYUV601n);
 		return YUVtoRGB(YUV601, mYUV709i);
 	}
-	else {
+	if(col_space == 2) {
 		YUV709 = RGBtoYUV(image.Sample(primarySampler, v_in.uv), mYUV709n);
 		return YUVtoRGB(YUV709, mYUV601i);
 	}
+	if(col_space == 3) {
+		YUV601 = RGBtoYUV(image.Sample(primarySampler, v_in.uv), mYUV601n);
+		return YUVtoRGB(YUV601, mYUV601i);
+	}
+	if(col_space == 4) {
+		YUV709 = RGBtoYUV(image.Sample(primarySampler, v_in.uv), mYUV709n);
+		return YUVtoRGB(YUV709, mYUV709i);
+	}
+	else
+		return image.Sample(primarySampler, v_in.uv);
 }
 
 
@@ -100,6 +112,6 @@ technique Draw
 	pass
 	{
 		vertex_shader = VSDefault(v_in);
-		pixel_shader  = YUV601To709(v_in);
+		pixel_shader  = PS_YUVSpaceConvert(v_in);
 	}
 }

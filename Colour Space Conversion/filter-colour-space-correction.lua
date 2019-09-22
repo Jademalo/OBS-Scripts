@@ -1,12 +1,17 @@
+--By Jademalo, using code by DarkLink (https://obsproject.com/forum/resources/darklinks-script-pack.655/)
+
 obs = obslua
 bit = require("bit")
 
 SETTING_COL_SPACE = 'col_space'
 
 TEXT_COL_SPACE = 'Colour Space'
-TEXT_COL_SPACE_1 = 'BT.601 -> BT.709'
-TEXT_COL_SPACE_2 = 'BT.709 -> BT.601'
-TEXT_COL_SPACE_3 = 'XRGB Mini RGB Output Fix'
+TEXT_COL_SPACE_1 = 'No Change'
+TEXT_COL_SPACE_2 = 'BT.601 -> BT.709'
+TEXT_COL_SPACE_3 = 'BT.709 -> BT.601'
+TEXT_COL_SPACE_4 = 'BT.601 -> BT.601'
+TEXT_COL_SPACE_5 = 'BT.709 -> BT.709'
+TEXT_COL_SPACE_6 = 'XRGB Mini RGB Output Fix'
 
 
 source_def = {}
@@ -19,13 +24,13 @@ source_def.get_name = function()
 end
 
 function script_description()
-	return "Adds a filter to correct BT.601/BT.709 colour space decoding issues."
+	return "Adds a filter to correct BT.601/BT.709 colour space decoding issues. \n\nBy Jademalo"
 end
 
 
 
 function reload_filter(filter)
-    local effect_path = script_path() .. 'filter-601-709/BT.601 to BT.709.effect'
+    local effect_path = script_path() .. 'filter-colour-space-correction/colour-space-correction.effect'
     obs.obs_enter_graphics()
 
     if filter.effect ~= nil then
@@ -96,9 +101,12 @@ source_def.get_properties = function(filter)
     props = obs.obs_properties_create()
 
     p = obs.obs_properties_add_list(props, SETTING_COL_SPACE, TEXT_COL_SPACE, obs.OBS_COMBO_TYPE_LIST, obs.OBS_COMBO_FORMAT_INT)
-    obs.obs_property_list_add_int(p, TEXT_COL_SPACE_1, 0)
+--    obs.obs_property_list_add_int(p, TEXT_COL_SPACE_1, 0)
     obs.obs_property_list_add_int(p, TEXT_COL_SPACE_2, 1)
-    obs.obs_property_list_add_int(p, TEXT_COL_SPACE_3, 0)
+    obs.obs_property_list_add_int(p, TEXT_COL_SPACE_3, 2)
+--    obs.obs_property_list_add_int(p, TEXT_COL_SPACE_4, 3)
+--    obs.obs_property_list_add_int(p, TEXT_COL_SPACE_5, 4)
+    obs.obs_property_list_add_int(p, TEXT_COL_SPACE_6, 1)
 
     return props
 end
