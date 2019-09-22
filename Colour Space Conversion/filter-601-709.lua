@@ -1,16 +1,12 @@
 obs = obslua
 bit = require("bit")
 
-SETTING_HUE_STEPS = 'hue_steps'
-SETTING_VALUE_STEPS = 'value_steps'
-SETTING_INVERT = 'invert'
+SETTING_INVERT = 'invert_709601'
 
-TEXT_HUE_STEPS = 'Hue Steps'
-TEXT_VALUE_STEPS = 'Value Steps'
-TEXT_INVERT = 'Invert (709 -> 601)'
+TEXT_INVERT = 'Invert'
 
 source_def = {}
-source_def.id = 'filter-toon'
+source_def.id = 'filter-601-709'
 source_def.type = obs.OBS_SOURCE_TYPE_FILTER
 source_def.output_flags = bit.bor(obs.OBS_SOURCE_VIDEO)
 
@@ -31,7 +27,7 @@ function set_render_size(filter)
 end
 
 source_def.get_name = function()
-    return "Toon"
+    return "601->709 Correction"
 end
 
 source_def.create = function(settings, source)
@@ -46,9 +42,7 @@ source_def.create = function(settings, source)
     obs.obs_enter_graphics()
     filter.effect = obs.gs_effect_create_from_file(effect_path, nil)
     if filter.effect ~= nil then
-        filter.params.hue_steps = obs.gs_effect_get_param_by_name(filter.effect, 'hue_steps')
-        filter.params.value_steps = obs.gs_effect_get_param_by_name(filter.effect, 'value_steps')
-        filter.params.invert = obs.gs_effect_get_param_by_name(filter.effect, 'invert')
+        filter.params.invert_709601 = obs.gs_effect_get_param_by_name(filter.effect, 'invert_709601')
     end
     obs.obs_leave_graphics()
 
@@ -78,9 +72,7 @@ source_def.get_height = function(filter)
 end
 
 source_def.update = function(filter, settings)
-    filter.hue_steps = obs.obs_data_get_int(settings, SETTING_HUE_STEPS)
-    filter.value_steps = obs.obs_data_get_int(settings, SETTING_VALUE_STEPS)
-    filter.invert = obs.obs_data_get_bool(settings, SETTING_INVERT)
+    filter.invert_709601 = obs.obs_data_get_bool(settings, SETTING_INVERT)
 
     set_render_size(filter)
 end
@@ -88,9 +80,7 @@ end
 source_def.video_render = function(filter, effect)
     obs.obs_source_process_filter_begin(filter.context, obs.GS_RGBA, obs.OBS_NO_DIRECT_RENDERING)
 
-    obs.gs_effect_set_int(filter.params.hue_steps, filter.hue_steps)
-    obs.gs_effect_set_int(filter.params.value_steps, filter.value_steps)
-    obs.gs_effect_set_bool(filter.params.invert, filter.invert)
+    obs.gs_effect_set_bool(filter.params.invert_709601, filter.invert_709601)
 
     obs.obs_source_process_filter_end(filter.context, filter.effect, filter.width, filter.height)
 end
@@ -98,16 +88,12 @@ end
 source_def.get_properties = function(settings)
     props = obs.obs_properties_create()
 
-    obs.obs_properties_add_int_slider(props, SETTING_HUE_STEPS, TEXT_HUE_STEPS, 1, 10, 1)
-    obs.obs_properties_add_int_slider(props, SETTING_VALUE_STEPS, TEXT_VALUE_STEPS, 1, 10, 1)
     obs.obs_properties_add_bool(props, SETTING_INVERT, TEXT_INVERT)
 
     return props
 end
 
 source_def.get_defaults = function(settings)
-    obs.obs_data_set_default_int(settings, SETTING_HUE_STEPS, 5)
-    obs.obs_data_set_default_int(settings, SETTING_VALUE_STEPS, 5)
     obs.obs_data_set_default_bool(settings, SETTING_INVERT, false)
 end
 
