@@ -44,48 +44,25 @@ VertDataOut VSDefault(VertDataIn v_in) {
 // Limited <-> Full
 // ************************************************************************** //
 
-float4 RangeConvert(VertDataOut v_in) : TARGET {
-	float const_1 = (16.0 / 255.0);
-	float const_2 = (219.0 / 255.0);
-	float const_3 = (255.0 / 219.0);
+float4 PS_RangeConvert(VertDataOut v_in) : TARGET {
+
+	const float c_min = 16.0 / 255.0;
+	const float c_range = 219.0 / 255.0;
+	const float c_inv_range = 1.0 / c_range;
 
 	if(range == 1) {
 		float4 c0 = image.Sample(primarySampler, v_in.uv);
-		return ((c0 - const_1) * const_3);
+		c0.rgb = (c0.rgb - c_min) * c_inv_range;
+		return c0;
 	}
 	if(range == 2) {
 		float4 c0 = image.Sample(primarySampler, v_in.uv);
-		return (c0 * const_2) + const_1;
+		c0.rgb = (c0.rgb * c_range) + c_min;
+		return c0;
 	}
 	else
 		return image.Sample(primarySampler, v_in.uv);
 }
-
-//	/* 16 - 235 -> 0 - 255 */
-//	float4 convert1(float4 con_in) {
-//		float4 percent = (con_in - 16) / 219.f; /* Converts to range 0 - 219 */
-//		return percent * 255;
-//	}
-//
-//	/* 0 - 255 -> 16 - 235 */
-//	float4 convert2(float4 con_in) {
-//		float4 percent = con_in / 255.f;
-//		return percent * 219 + 16; /* Converts to range 0 - 219 and offsets by 16*/
-//	}
-//
-//	float4 RangeConvert(VertDataOut v_in) : TARGET {
-//
-//		if(range == 1) {
-//			float4 c0 = image.Sample(primarySampler, v_in.uv);
-//			return convert1(c0);
-//		}
-//		if(range == 2) {
-//			float4 c0 = image.Sample(primarySampler, v_in.uv);
-//			return convert2(c0);
-//		}
-//		else
-//			return image.Sample(primarySampler, v_in.uv);
-//		}
 
 
 technique Draw
@@ -93,6 +70,6 @@ technique Draw
 	pass
 	{
 		vertex_shader = VSDefault(v_in);
-		pixel_shader  = RangeConvert(v_in);
+		pixel_shader  = PS_RangeConvert(v_in);
 	}
 }
