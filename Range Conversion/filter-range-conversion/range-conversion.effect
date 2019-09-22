@@ -1,0 +1,98 @@
+//By Jademalo, using code from Xaymar
+//tex2D has been replaced by image.sample
+
+// Basic Input Parameters
+uniform float4x4 ViewProj; // View Projection Matrix
+uniform texture2d image; // Input Image
+
+// Custom Parameters (These will be visible in the UI)
+uniform int range;
+
+
+sampler_state primarySampler {
+	Filter = Linear;
+	AddressU = Clamp;
+	AddressV = Clamp;
+};
+
+sampler_state textureSampler {
+	AddressU  = Wrap;
+	AddressV  = Wrap;
+	Filter    = Linear;
+};
+
+struct VertDataIn {
+	float4 pos : POSITION;
+	float2 uv  : TEXCOORD0;
+};
+
+struct VertDataOut {
+	float4 pos : POSITION;
+	float2 uv  : TEXCOORD0;
+};
+
+VertDataOut VSDefault(VertDataIn v_in) {
+	VertDataOut vert_out;
+	vert_out.pos = mul(float4(v_in.pos.xyz, 1.0), ViewProj);
+	vert_out.uv  = v_in.uv;
+
+	return vert_out;
+}
+
+
+// ************************************************************************** //
+// Limited <-> Full
+// ************************************************************************** //
+
+float4 RangeConvert(VertDataOut v_in) : TARGET {
+	float const_1 = (16.0 / 255.0);
+	float const_2 = (219.0 / 255.0);
+	float const_3 = (255.0 / 219.0);
+
+	if(range == 1) {
+		float4 c0 = image.Sample(primarySampler, v_in.uv);
+		return ((c0 - const_1) * const_3);
+	}
+	if(range == 2) {
+		float4 c0 = image.Sample(primarySampler, v_in.uv);
+		return (c0 * const_2) + const_1;
+	}
+	else
+		return image.Sample(primarySampler, v_in.uv);
+}
+
+//	/* 16 - 235 -> 0 - 255 */
+//	float4 convert1(float4 con_in) {
+//		float4 percent = (con_in - 16) / 219.f; /* Converts to range 0 - 219 */
+//		return percent * 255;
+//	}
+//
+//	/* 0 - 255 -> 16 - 235 */
+//	float4 convert2(float4 con_in) {
+//		float4 percent = con_in / 255.f;
+//		return percent * 219 + 16; /* Converts to range 0 - 219 and offsets by 16*/
+//	}
+//
+//	float4 RangeConvert(VertDataOut v_in) : TARGET {
+//
+//		if(range == 1) {
+//			float4 c0 = image.Sample(primarySampler, v_in.uv);
+//			return convert1(c0);
+//		}
+//		if(range == 2) {
+//			float4 c0 = image.Sample(primarySampler, v_in.uv);
+//			return convert2(c0);
+//		}
+//		else
+//			return image.Sample(primarySampler, v_in.uv);
+//		}
+
+
+technique Draw
+{
+	pass
+	{
+		vertex_shader = VSDefault(v_in);
+		pixel_shader  = RangeConvert(v_in);
+	}
+}
