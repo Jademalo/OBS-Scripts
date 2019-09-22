@@ -1,9 +1,12 @@
 obs = obslua
 bit = require("bit")
 
-SETTING_INVERT = 'invert'
+SETTING_COL_SPACE = 'col_space'
 
-TEXT_INVERT = 'Invert (709 -> 601)'
+TEXT_COL_SPACE = 'Colour Space'
+TEXT_COL_SPACE_1 = 'BT.601 -> BT.709'
+TEXT_COL_SPACE_2 = 'BT.709 -> BT.601'
+TEXT_COL_SPACE_3 = 'XRGB Mini RGB Output Fix'
 
 
 source_def = {}
@@ -16,7 +19,7 @@ source_def.get_name = function()
 end
 
 function script_description()
-	return "Adds a filter to correct 601/709 colour space decoding issues."
+	return "Adds a filter to correct BT.601/BT.709 colour space decoding issues."
 end
 
 
@@ -33,8 +36,7 @@ function reload_filter(filter)
     filter.effect = obs.gs_effect_create_from_file(effect_path, nil)
 
     if filter.effect ~= nil then
-        filter.params.pixel_size = obs.gs_effect_get_param_by_name(filter.effect, 'pixel_size')
-        filter.params.invert = obs.gs_effect_get_param_by_name(filter.effect, 'invert')
+        filter.params.col_space = obs.gs_effect_get_param_by_name(filter.effect, 'col_space')
     end
 
     obs.obs_leave_graphics()
@@ -45,7 +47,7 @@ end
 
 
 source_def.update = function(filter, settings)
-    filter.invert = obs.obs_data_get_bool(settings, SETTING_INVERT)
+    filter.col_space = obs.obs_data_get_int(settings, SETTING_COL_SPACE)
 
     reload_filter(filter)
 end
@@ -68,8 +70,6 @@ source_def.create = function(settings, source)
     filter.width = 0
     filter.height = 0
 
-    filter.pixel_size = obs.vec2()
-
     source_def.update(filter, settings)
     return filter
 end
@@ -87,7 +87,7 @@ source_def.video_render = function(filter, effect)
 
     if effect ~= nil then
         obs.obs_source_process_filter_begin(filter.context, obs.GS_RGBA, obs.OBS_NO_DIRECT_RENDERING)
-        obs.gs_effect_set_bool(filter.params.invert, filter.invert)
+        obs.gs_effect_set_int(filter.params.col_space, filter.col_space)
         obs.obs_source_process_filter_end(filter.context, effect, filter.width, filter.height)
     end
 end
@@ -95,7 +95,10 @@ end
 source_def.get_properties = function(filter)
     props = obs.obs_properties_create()
 
-    obs.obs_properties_add_bool(props, SETTING_INVERT, TEXT_INVERT)
+    p = obs.obs_properties_add_list(props, SETTING_COL_SPACE, TEXT_COL_SPACE, obs.OBS_COMBO_TYPE_LIST, obs.OBS_COMBO_FORMAT_INT)
+    obs.obs_property_list_add_int(p, TEXT_COL_SPACE_1, 0)
+    obs.obs_property_list_add_int(p, TEXT_COL_SPACE_2, 1)
+    obs.obs_property_list_add_int(p, TEXT_COL_SPACE_3, 0)
 
     return props
 end
@@ -116,8 +119,6 @@ source_def.video_tick = function(filter, seconds)
     filter.height = height
     width = width == 0 and 1 or width
     height = height == 0 and 1 or height
-    filter.pixel_size.x = 1.0 / width
-    filter.pixel_size.y = 1.0 / height
 end
 
 obs.obs_register_source(source_def)
