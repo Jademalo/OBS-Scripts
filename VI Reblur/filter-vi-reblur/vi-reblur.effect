@@ -6,10 +6,6 @@ uniform float4x4 ViewProj; // View Projection Matrix
 uniform texture2d image; // Input Image
 uniform float2 Image_Texel;
 
-// Custom Parameters
-uniform bool offset;
-uniform int width;
-
 
 sampler_state sample_point {
 	Filter   = Point;

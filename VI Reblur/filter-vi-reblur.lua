@@ -3,10 +3,6 @@
 obs = obslua
 bit = require("bit")
 
-SETTING_OFFSET = 'offset' -- This is the name of the variable in the .effect file
-
-TEXT_OFFSET = 'Offset Fix'
-
 
 source_def = {}
 source_def.id = 'filter-vi-reblur'
@@ -34,11 +30,6 @@ function reload_filter(filter)
 
     filter.effect = obs.gs_effect_create_from_file(effect_path, nil) --This creates a new effect from the separate effect file
 
-    if filter.effect ~= nil then
-        filter.params.offset = obs.gs_effect_get_param_by_name(filter.effect, SETTING_OFFSET) --This sets up the filter.params.offset object as a filter.effect object with a specific name
-        filter.params.width = obs.gs_effect_get_param_by_name(filter.effect, 'width')
-    end
-
     obs.obs_leave_graphics()
 end
 
@@ -47,8 +38,6 @@ end
 
 
 source_def.update = function(filter, settings)
-    filter.offset = obs.obs_data_get_bool(settings, SETTING_OFFSET) --This is getting the value from the dropdown box and setting filter.offset to that value
-
     reload_filter(filter)
 end
 
@@ -87,18 +76,8 @@ source_def.video_render = function(filter, effect)
 
     if effect ~= nil then
         obs.obs_source_process_filter_begin(filter.context, obs.GS_RGBA, obs.OBS_NO_DIRECT_RENDERING)
-        obs.gs_effect_set_bool(filter.params.offset, filter.offset) --This sets the parameter in the effect file with the value of filter.offset
-        obs.gs_effect_set_int(filter.params.width, filter.width)
         obs.obs_source_process_filter_end(filter.context, effect, filter.width, filter.height)
     end
-end
-
-source_def.get_properties = function(filter)
-    props = obs.obs_properties_create()
-
-    p = obs.obs_properties_add_bool(props, SETTING_OFFSET, TEXT_OFFSET)
-
-    return props
 end
 
 source_def.video_tick = function(filter, seconds)
